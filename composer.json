@@ -1,6 +1,6 @@
 {
     "name": "slicksky/domain-blacklist-spam-check",
-    "description": "Check domains for blacklisted MX server against most Spam servers.",
+    "description": "Check a domain for blacklisted MX server against most Spam listing services.",
     "authors": [
         {
             "name": "Kiril Cvetkov",
