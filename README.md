@@ -2,94 +2,101 @@
 
 This small package helps to check a domain for blacklisted MX server against most Spam listing services.
 
+### Installation
+```bash
+composer require slicksky/domain-blacklist-spam-check
+```
+
 ## Usage
 
-```
-require __DIR__ . '/../vendor/autoload.php';
+```php
+require 'vendor/autoload.php';
 
 use SlickSky\DomainBlacklistSpamCheck\Blacklists;
 
+$sampleDomain = 'google.com';
+
 // Retrieve a full report
-$results = (new Blacklists('google.com'))->all();
+$results = (new Blacklists($sampleDomain))->all();
 
 // Retrieve only the listed MX servers
-$results = (new Blacklists('google.com'))->listed();
+$results = (new Blacklists($sampleDomain))->listed();
 ```
 
 ## Results
 
-```
-array:1 [
-  0 => SlickSky\DomainBlacklistSpamCheck\MxRecord^ {#441
-    +host: "google.com"
-    +class: "IN"
-    +ttl: 377
-    +type: "MX"
-    +pri: 10
-    +target: "smtp.google.com"
-    +ips: array:5 [
-      0 => SlickSky\DomainBlacklistSpamCheck\MxIp^ {#442
-        +listed: false
-        +blacklists: array:1 [
-          0 => SlickSky\DomainBlacklistSpamCheck\Blacklist^ {#443
-            +listed: false
-            #host: "dnsbl-1.uceprotect.net"
-            #name: "UCEPROTECT"
-            #ip: SlickSky\DomainBlacklistSpamCheck\MxIp^ {#442}
-          }
-        ]
-        #ip: "142.251.16.27"
-      }
-      1 => SlickSky\DomainBlacklistSpamCheck\MxIp^ {#440
-        +listed: false
-        +blacklists: array:1 [
-          0 => SlickSky\DomainBlacklistSpamCheck\Blacklist^ {#436
-            +listed: false
-            #host: "dnsbl-1.uceprotect.net"
-            #name: "UCEPROTECT"
-            #ip: SlickSky\DomainBlacklistSpamCheck\MxIp^ {#440}
-          }
-        ]
-        #ip: "142.251.163.26"
-      }
-      2 => SlickSky\DomainBlacklistSpamCheck\MxIp^ {#439
-        +listed: false
-        +blacklists: array:1 [
-          0 => SlickSky\DomainBlacklistSpamCheck\Blacklist^ {#435
-            +listed: false
-            #host: "dnsbl-1.uceprotect.net"
-            #name: "UCEPROTECT"
-            #ip: SlickSky\DomainBlacklistSpamCheck\MxIp^ {#439}
-          }
-        ]
-        #ip: "142.251.163.27"
-      }
-      3 => SlickSky\DomainBlacklistSpamCheck\MxIp^ {#438
-        +listed: false
-        +blacklists: array:1 [
-          0 => SlickSky\DomainBlacklistSpamCheck\Blacklist^ {#434
-            +listed: false
-            #host: "dnsbl-1.uceprotect.net"
-            #name: "UCEPROTECT"
-            #ip: SlickSky\DomainBlacklistSpamCheck\MxIp^ {#438}
-          }
-        ]
-        #ip: "172.253.62.26"
-      }
-      4 => SlickSky\DomainBlacklistSpamCheck\MxIp^ {#437
-        +listed: false
-        +blacklists: array:1 [
-          0 => SlickSky\DomainBlacklistSpamCheck\Blacklist^ {#433
-            +listed: false
-            #host: "dnsbl-1.uceprotect.net"
-            #name: "UCEPROTECT"
-            #ip: SlickSky\DomainBlacklistSpamCheck\MxIp^ {#437}
-          }
-        ]
-        #ip: "172.253.115.26"
-      }
-    ]
-  }
+```php
+[
+  0 => SlickSky\DomainBlacklistSpamCheck\MxRecord::__set_state([
+     'host' => 'google.com',
+     'class' => 'IN',
+     'ttl' => 377,
+     'type' => 'MX',
+     'pri' => 10,
+     'target' => 'smtp.google.com',
+     'ips' => [
+      0 => SlickSky\DomainBlacklistSpamCheck\MxIp::__set_state([
+         'listed' => false,
+         'blacklists' => [
+          0 => SlickSky\DomainBlacklistSpamCheck\Blacklist::__set_state([
+             'listed' => false,
+             'host' => 'dnsbl-1.uceprotect.net',
+             'name' => 'UCEPROTECT',
+             'ip' => NULL,
+          ]),
+        ],
+         'ip' => '172.253.115.26',
+      ]),
+      1 => SlickSky\DomainBlacklistSpamCheck\MxIp::__set_state([
+         'listed' => false,
+         'blacklists' => [
+          0 => SlickSky\DomainBlacklistSpamCheck\Blacklist::__set_state([
+             'listed' => false,
+             'host' => 'dnsbl-1.uceprotect.net',
+             'name' => 'UCEPROTECT',
+             'ip' => NULL,
+          ]),
+        ],
+         'ip' => '172.253.122.26',
+      ]),
+      2 => SlickSky\DomainBlacklistSpamCheck\MxIp::__set_state([
+         'listed' => false,
+         'blacklists' => [
+          0 => SlickSky\DomainBlacklistSpamCheck\Blacklist::__set_state([
+             'listed' => false,
+             'host' => 'dnsbl-1.uceprotect.net',
+             'name' => 'UCEPROTECT',
+             'ip' => NULL,
+          ]),
+        ],
+         'ip' => '172.253.63.27',
+      ]),
+      3 => SlickSky\DomainBlacklistSpamCheck\MxIp::__set_state([
+         'listed' => false,
+         'blacklists' => [
+          0 => SlickSky\DomainBlacklistSpamCheck\Blacklist::__set_state([
+             'listed' => false,
+             'host' => 'dnsbl-1.uceprotect.net',
+             'name' => 'UCEPROTECT',
+             'ip' => NULL,
+          ]),
+        ],
+         'ip' => '172.253.63.26',
+      ]),
+      4 => SlickSky\DomainBlacklistSpamCheck\MxIp::__set_state([
+         'listed' => false,
+         'blacklists' => [
+          0 => SlickSky\DomainBlacklistSpamCheck\Blacklist::__set_state([
+             'listed' => false,
+             'host' => 'dnsbl-1.uceprotect.net',
+             'name' => 'UCEPROTECT',
+             'ip' => NULL,
+          ]),
+        ],
+         'ip' => '142.251.16.26',
+      ]),
+    ],
+  ]),
 ]
 ```
 
