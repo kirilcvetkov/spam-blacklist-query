@@ -14,7 +14,6 @@ final class BlacklistsTest extends TestCase
     {
         $testDomain = 'google.com';
         $testOnlyOneBlacklist = [key(Blacklists::BLACKLISTS) => current(Blacklists::BLACKLISTS)];
-        // $testOnlyOneBlacklist = ['zen.spamhaus.org' => 'SpamHaus'];
 
         $results = (new Blacklists($testDomain, $testOnlyOneBlacklist))->all();
 
