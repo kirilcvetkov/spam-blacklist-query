@@ -24,7 +24,7 @@ class Blacklists
         $this->blacklists = $blacklistsReplace ?? self::BLACKLISTS;
     }
 
-    public function check(): Blacklists
+    public function check(): self
     {
         $this->results = array_map(
             function ($record) {

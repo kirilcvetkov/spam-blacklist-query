@@ -1,6 +1,10 @@
 {
     "name": "slicksky/domain-blacklist-spam-check",
+    "type": "library",
     "description": "Check a domain for blacklisted MX server against most Spam listing services.",
+    "keywords": ["blacklist", "spam"],
+    "homepage": "https://slicksky.com",
+    "license": "MIT",
     "authors": [
         {
             "name": "Kiril Cvetkov",
