@@ -1,10 +1,18 @@
-# Domain Blacklist Spam Check
+# Spam Blacklist Query
 
-This small package helps to check a domain for blacklisted MX server against most Spam listing services.
+This small package helps you find out if a domain or IP is blacklisted on the most popular spam listing services.
+
+Here's how it works:
+1. Retrieve MX records for an inputted domain
+2. Get the list of IPs for each MX record
+3. Test each IP against the Spam Blacklist services
 
 ### Installation
+
+Run this command in your project's root folder
+
 ```bash
-composer require slicksky/domain-blacklist-spam-check
+composer require slicksky/blacklist-spam-query
 ```
 
 ## Usage
@@ -12,95 +20,94 @@ composer require slicksky/domain-blacklist-spam-check
 ```php
 require 'vendor/autoload.php';
 
-use SlickSky\DomainBlacklistSpamCheck\Blacklists;
+use SlickSky\SpamBlacklistQuery\Blacklist;
+use SlickSky\SpamBlacklistQuery\Config;
+use SlickSky\SpamBlacklistQuery\Domain;
+use SlickSky\SpamBlacklistQuery\MxIp;
 
+// Test a Domain
 $sampleDomain = 'google.com';
+$domainResults = (new Domain($sampleDomain))
+   ->query(); // Collection
 
-// Retrieve a full report
-$results = (new Blacklists($sampleDomain))->all();
+// Get the listed records only
+$listedIps = $domainResults->listed(); // Collection
 
-// Retrieve only the listed MX servers
-$results = (new Blacklists($sampleDomain))->listed();
+// Ask if any IP records of the domain are listed
+$isListed = $domainResults->isListed(); // bool
+
+// Override blacklisting services
+// array of ['service address' => 'name']
+$blacklists = new Config([
+   'dnsbl-1.uceprotect.net' => 'UCEPROTECT',
+]);
+
+$domainResults = (new Domain($sampleDomain, $blacklists))
+   ->query(); // returns Collection
+
+
+// Test IP
+$ip = new MxIp('8.8.8.8');
+
+// Is this IP valid?
+$isInvalid = $ip->isInvalid(); // bool
+
+// Query the IP
+foreach (Config::BLACKLISTS as $serviceHost => $serviceName) {
+   $isListed = $ip->query(
+      Blacklist::load($serviceHost, $serviceName, $ip),
+   ); // bool
+}
+
+// Get the listed state
+$isListed = $ip->isListed(); // bool
+
+// Get the blacklists objects and their results
+$blacklistsResults = $ip->blacklists; // Collection
+
+
 ```
 
 ## Results
 
 ```php
-[
-  0 => SlickSky\DomainBlacklistSpamCheck\MxRecord::__set_state([
-     'host' => 'google.com',
-     'class' => 'IN',
-     'ttl' => 377,
-     'type' => 'MX',
-     'pri' => 10,
-     'target' => 'smtp.google.com',
-     'ips' => [
-      0 => SlickSky\DomainBlacklistSpamCheck\MxIp::__set_state([
-         'listed' => false,
-         'blacklists' => [
-          0 => SlickSky\DomainBlacklistSpamCheck\Blacklist::__set_state([
+
+SlickSky\SpamBlacklistQuery\Result::__set_state([
+   'items' => [
+    SlickSky\SpamBlacklistQuery\MxRecord::__set_state([
+       'host' => 'google.com',
+       'class' => 'IN',
+       'ttl' => 377,
+       'type' => 'MX',
+       'pri' => 10,
+       'target' => 'smtp.google.com',
+       'ips' =>
+      SlickSky\SpamBlacklistQuery\Collection::__set_state([
+         'items' => [
+          SlickSky\SpamBlacklistQuery\MxIp::__set_state([
+             'blacklists' =>
+            SlickSky\SpamBlacklistQuery\Collection::__set_state([
+               'items' => [
+                SlickSky\SpamBlacklistQuery\Blacklist::__set_state([
+                   'listed' => false,
+                   'host' => 'dnsbl-1.uceprotect.net',
+                   'name' => 'UCEPROTECT',
+                   'ipReverse' => '27.2.251.142',
+                ]),
+              ],
+            ]),
+             'invalid' => false,
              'listed' => false,
-             'host' => 'dnsbl-1.uceprotect.net',
-             'name' => 'UCEPROTECT',
-             'ip' => NULL,
+             'ip' => '142.251.2.27',
           ]),
         ],
-         'ip' => '172.253.115.26',
       ]),
-      1 => SlickSky\DomainBlacklistSpamCheck\MxIp::__set_state([
-         'listed' => false,
-         'blacklists' => [
-          0 => SlickSky\DomainBlacklistSpamCheck\Blacklist::__set_state([
-             'listed' => false,
-             'host' => 'dnsbl-1.uceprotect.net',
-             'name' => 'UCEPROTECT',
-             'ip' => NULL,
-          ]),
-        ],
-         'ip' => '172.253.122.26',
-      ]),
-      2 => SlickSky\DomainBlacklistSpamCheck\MxIp::__set_state([
-         'listed' => false,
-         'blacklists' => [
-          0 => SlickSky\DomainBlacklistSpamCheck\Blacklist::__set_state([
-             'listed' => false,
-             'host' => 'dnsbl-1.uceprotect.net',
-             'name' => 'UCEPROTECT',
-             'ip' => NULL,
-          ]),
-        ],
-         'ip' => '172.253.63.27',
-      ]),
-      3 => SlickSky\DomainBlacklistSpamCheck\MxIp::__set_state([
-         'listed' => false,
-         'blacklists' => [
-          0 => SlickSky\DomainBlacklistSpamCheck\Blacklist::__set_state([
-             'listed' => false,
-             'host' => 'dnsbl-1.uceprotect.net',
-             'name' => 'UCEPROTECT',
-             'ip' => NULL,
-          ]),
-        ],
-         'ip' => '172.253.63.26',
-      ]),
-      4 => SlickSky\DomainBlacklistSpamCheck\MxIp::__set_state([
-         'listed' => false,
-         'blacklists' => [
-          0 => SlickSky\DomainBlacklistSpamCheck\Blacklist::__set_state([
-             'listed' => false,
-             'host' => 'dnsbl-1.uceprotect.net',
-             'name' => 'UCEPROTECT',
-             'ip' => NULL,
-          ]),
-        ],
-         'ip' => '142.251.16.26',
-      ]),
-    ],
-  ]),
-]
+    ]),
+  ],
+])
+
 ```
 
 ## License
 
-The Domain Blacklist Spam Check is open-sourced software licensed under the MIT license.
-
+The Spam Blacklist Query is open-sourced software licensed under the MIT license.

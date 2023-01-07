@@ -2,30 +2,42 @@
 
 declare(strict_types=1);
 
-namespace SlickSky\DomainBlacklistSpamCheck;
+namespace SlickSky\SpamBlacklistQuery;
+
+use function checkdnsrr;
+use function preg_match;
 
 class Blacklist
 {
-    public bool $listed = false;
-    public SpamhausParser $spamhouse;
+    protected bool $listed;
 
-    public function __construct(protected string $host, protected string $name, protected MxIp $ip)
+    public function __construct(protected string $host, protected string $name, protected string $ipReverse)
     {
-        $this->listed = $this->parse();
     }
 
-    public function parse(): bool
+    public static function load(string $host, string $name, MxIp $ip): self|SpamHaus
+    {
+        return preg_match('/SpamHaus/i', $name)
+            ? new SpamHaus($host, $name, $ip->reverse())
+            : new static($host, $name, $ip->reverse());
+    }
+
+    public function query(): array|bool
     {
         return (bool) checkdnsrr($this->dnsHost(), 'A');
     }
 
     public function isListed(): bool
     {
-        return $this->listed;
+        if (isset($this->listed)) {
+            return $this->listed;
+        }
+
+        return $this->listed = $this->query();
     }
 
     public function dnsHost(): string
     {
-        return $this->ip->reverse() . '.' . $this->host . '.';
+        return $this->ipReverse . '.' . $this->host . '.';
     }
 }

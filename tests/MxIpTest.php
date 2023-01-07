@@ -1,45 +1,64 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\SystemChecks;
 
-use Exception;
+use Mockery;
 use PHPUnit\Framework\TestCase;
-use SlickSky\DomainBlacklistSpamCheck\Blacklist;
-use SlickSky\DomainBlacklistSpamCheck\Blacklists;
-use SlickSky\DomainBlacklistSpamCheck\MxIp;
-use SlickSky\DomainBlacklistSpamCheck\MxRecord;
+use SlickSky\SpamBlacklistQuery\Blacklist;
+use SlickSky\SpamBlacklistQuery\MxIp;
 
 final class MxIpTest extends TestCase
 {
-    public function testValidIp()
-    {
-        $validIp = '8.8.8.8'; // Google DNS
+    protected string $validIp = '8.8.8.8'; // Google DNS
 
-        $ip = new MxIp($validIp);
-
-        $this->assertEquals($validIp, $ip->reverse());
-        $this->assertFalse($ip->listed);
-    }
-
-    public function testInvalidIp()
+    public function testIpInvalid(): void
     {
         $invalidIp = '8.8.8';
 
-        $this->expectException(Exception::class);
-        $this->expectExceptionMessage('Invalid IP.');
-
         $ip = new MxIp($invalidIp);
+
+        $this->assertTrue($ip->isInvalid());
     }
 
-    public function testCheck()
+    public function testIpValid(): void
     {
-        $validIp = '8.8.8.8'; // Google DNS
-        $host = key(Blacklists::BLACKLISTS);
-        $name = current(Blacklists::BLACKLISTS);
+        $ip = new MxIp($this->validIp);
 
-        $ip = new MxIp($validIp);
-        $blacklist = new Blacklist($host, $name, $ip);
+        $this->assertEquals($this->validIp, $ip->get());
+        $this->assertFalse($ip->isInvalid());
+    }
 
-        $this->assertFalse($ip->isListed($blacklist));
+    public function testIsListed(): void
+    {
+        $blacklist = Mockery::mock(Blacklist::class);
+        $blacklist->shouldReceive('isListed')
+            ->once()
+            ->andReturn(true);
+
+        $ip = new MxIp($this->validIp);
+
+        $result = $ip->query($blacklist);
+
+        $this->assertFalse($ip->isInvalid());
+        $this->assertTrue($result);
+        $this->assertTrue($ip->isListed());
+    }
+
+    public function testIsNotListed(): void
+    {
+        $blacklist = Mockery::mock(Blacklist::class);
+        $blacklist->shouldReceive('isListed')
+            ->once()
+            ->andReturn(false);
+
+        $ip = new MxIp($this->validIp);
+
+        $result = $ip->query($blacklist);
+
+        $this->assertFalse($ip->isInvalid());
+        $this->assertFalse($result);
+        $this->assertFalse($ip->isListed());
     }
 }

@@ -2,33 +2,63 @@
 
 declare(strict_types=1);
 
-namespace SlickSky\DomainBlacklistSpamCheck;
+namespace SlickSky\SpamBlacklistQuery;
 
-use Exception;
+use function array_reverse;
+use function explode;
+use function filter_var;
+use function implode;
+
+use const FILTER_VALIDATE_IP;
 
 class MxIp
 {
-    public bool $listed = false;
-    public array $blacklists = [];
+    public Collection $blacklists;
+    protected bool $invalid;
+    protected bool $listed;
 
-    public function __construct(protected ?string $ip)
+    public function __construct(protected string|null $ip)
     {
-        if (filter_var($this->ip, FILTER_VALIDATE_IP) !== $this->ip) {
-            throw new Exception('Invalid IP.');
+        $this->invalid    = filter_var($this->ip, FILTER_VALIDATE_IP) !== $this->ip;
+        $this->blacklists = new Collection([]);
+    }
+
+    public function get(): string
+    {
+        return $this->ip;
+    }
+
+    public function query(Blacklist $blacklist): bool|null
+    {
+        if ($this->invalid) {
+            return null; // TODO Exception?
         }
-    }
 
-    public function reverse()
-    {
-        return implode('.', array_reverse(explode('.', $this->ip)));
-    }
+        $listed = $blacklist->isListed();
 
-    public function isListed(Blacklist $blacklist): bool
-    {
-        $this->listed = $this->listed ?: $blacklist->isListed();
+        $this->listed ??= false ?: $listed;
 
         $this->blacklists[] = $blacklist;
 
-        return $blacklist->isListed();
+        return $listed;
+    }
+
+    public function isListed(): bool|null
+    {
+        return $this->listed ?? null;
+    }
+
+    public function isInvalid(): bool
+    {
+        return $this->invalid;
+    }
+
+    public function reverse(): string
+    {
+        if ($this->invalid) {
+            return '';
+        }
+
+        return implode('.', array_reverse(explode('.', $this->ip)));
     }
 }
