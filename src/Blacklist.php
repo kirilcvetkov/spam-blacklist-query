@@ -11,7 +11,7 @@ class Blacklist
 {
     protected bool $listed;
 
-    public function __construct(protected string $host, protected string $name, protected string $ipReverse)
+    public function __construct(public string $host, public string $name, public string $ipReverse)
     {
     }
 

@@ -7,6 +7,8 @@ namespace Tests\SystemChecks;
 use Mockery;
 use PHPUnit\Framework\TestCase;
 use SlickSky\SpamBlacklistQuery\Blacklist;
+use SlickSky\SpamBlacklistQuery\Config;
+use SlickSky\SpamBlacklistQuery\Domain;
 use SlickSky\SpamBlacklistQuery\MxRecord;
 use SlickSky\SpamBlacklistQuery\Result;
 
@@ -14,7 +16,7 @@ use function array_map;
 
 final class ResultTest extends TestCase
 {
-    protected function getResultObject(bool $isListed = false): Result
+    protected function getResultObject(bool $isListed): Result
     {
         $blacklist = Mockery::mock(Blacklist::class);
         $blacklist->shouldReceive('isListed')
@@ -60,5 +62,41 @@ final class ResultTest extends TestCase
         $this->assertEmpty($result->listed());
         $this->assertContainsOnlyInstancesOf(MxRecord::class, $result);
         $this->assertFalse($result->isListed());
+    }
+
+    public function testToArray(): void
+    {
+        $testDomain = 'google.com';
+
+        $result = (new Domain(
+            $testDomain,
+            new Config([key(Config::BLACKLISTS) => current(Config::BLACKLISTS)]),
+        ))->query();
+
+        $this->assertInstanceOf(Result::class, $result);
+        $this->assertContainsOnlyInstancesOf(MxRecord::class, $result);
+
+        $array = $result->toArray();
+        $array = reset($array);
+
+        $this->assertArrayHasKey('host', $array);
+        $this->assertArrayHasKey('target', $array);
+        $this->assertArrayHasKey('ips', $array);
+        $this->assertIsArray($array['ips']);
+
+        $ip = reset($array['ips']);
+
+        $this->assertArrayHasKey('blacklists', $ip);
+        $this->assertArrayHasKey('invalid', $ip);
+        $this->assertArrayHasKey('listed', $ip);
+        $this->assertArrayHasKey('ip', $ip);
+        $this->assertIsArray($ip['blacklists']);
+
+        $blacklist = reset($ip['blacklists']);
+
+        $this->assertArrayHasKey('host', $blacklist);
+        $this->assertArrayHasKey('name', $blacklist);
+        $this->assertArrayHasKey('listed', $blacklist);
+        $this->assertArrayHasKey('ipReverse', $blacklist);
     }
 }

@@ -38,4 +38,33 @@ class Result extends Collection
             },
         ));
     }
+
+    public function toArray()
+    {
+        return array_map(function ($record) {
+            return [
+                'host' => $record->host,
+                'class' => $record->class,
+                'ttl' => $record->ttl,
+                'type' => $record->type,
+                'pri' => $record->pri,
+                'target' => $record->target,
+                'ips' => array_map(function ($ip) {
+                    return [
+                        'blacklists' => array_map(function ($blacklist) {
+                            return [
+                                'listed' => $blacklist->isListed(),
+                                'host' => $blacklist->host,
+                                'name' => $blacklist->name,
+                                'ipReverse' => $blacklist->ipReverse,
+                            ];
+                        }, $ip->blacklists->toArray()),
+                        'invalid' => $ip->isInvalid(),
+                        'listed' => $ip->isListed(),
+                        'ip' => $ip->get(),
+                    ];
+                }, $record->ips()->toArray()),
+            ];
+        }, $this->items);
+    }
 }
