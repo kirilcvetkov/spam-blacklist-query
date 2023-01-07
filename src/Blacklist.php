@@ -11,20 +11,20 @@ class Blacklist
 {
     protected bool $listed;
 
-    public function __construct(public string $host, public string $name, public string $ipReverse)
+    public function __construct(public string $host, public string $service, public string $ipReverse)
     {
     }
 
-    public static function load(string $host, string $name, MxIp $ip): self|SpamHaus
+    public static function load(string $host, string $service, MxIp $ip): self|SpamHaus
     {
-        return preg_match('/SpamHaus/i', $name)
-            ? new SpamHaus($host, $name, $ip->reverse())
-            : new static($host, $name, $ip->reverse());
+        return preg_match('/SpamHaus/i', $service)
+            ? new SpamHaus($host, $service, $ip->reverse())
+            : new static($host, $service, $ip->reverse());
     }
 
     public function query(): array|bool
     {
-        return (bool) checkdnsrr($this->dnsHost(), 'A');
+        return (bool) checkdnsrr($this->hostname(), 'A');
     }
 
     public function isListed(): bool
@@ -36,7 +36,7 @@ class Blacklist
         return $this->listed = $this->query();
     }
 
-    public function dnsHost(): string
+    public function hostname(): string
     {
         return $this->ipReverse . '.' . $this->host . '.';
     }

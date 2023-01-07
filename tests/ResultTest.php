@@ -95,7 +95,7 @@ final class ResultTest extends TestCase
         $blacklist = reset($ip['blacklists']);
 
         $this->assertArrayHasKey('host', $blacklist);
-        $this->assertArrayHasKey('name', $blacklist);
+        $this->assertArrayHasKey('service', $blacklist);
         $this->assertArrayHasKey('listed', $blacklist);
         $this->assertArrayHasKey('ipReverse', $blacklist);
     }

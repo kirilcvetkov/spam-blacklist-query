@@ -55,8 +55,9 @@ class Result extends Collection
                             return [
                                 'listed' => $blacklist->isListed(),
                                 'host' => $blacklist->host,
-                                'name' => $blacklist->name,
+                                'service' => $blacklist->service,
                                 'ipReverse' => $blacklist->ipReverse,
+                                'hostname' => $blacklist->hostname(),
                             ];
                         }, $ip->blacklists->toArray()),
                         'invalid' => $ip->isInvalid(),

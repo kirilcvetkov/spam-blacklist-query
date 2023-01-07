@@ -46,7 +46,7 @@ class SpamHaus extends Blacklist
      */
     public function query(): array
     {
-        return dns_get_record($this->dnsHost(), DNS_A) ?: [];
+        return dns_get_record($this->hostname(), DNS_A) ?: [];
     }
 
     public function ipInRange(string $ip, string $rangeStart, string $rangeEnd): bool
