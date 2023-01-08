@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\SystemChecks;
+namespace Tests;
 
 use PHPUnit\Framework\TestCase;
 use SlickSky\SpamBlacklistQuery\Blacklist;

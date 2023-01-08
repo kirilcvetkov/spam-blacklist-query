@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace SlickSky\SpamBlacklistQuery;
 
 use function array_filter;
+use function array_map;
 
 class Result extends Collection
 {
@@ -39,33 +40,32 @@ class Result extends Collection
         ));
     }
 
-    public function toArray()
+    /**
+     * Convert objects into an array
+     *
+     * @return string[][][] Array of the objects' values
+     */
+    public function toArray(): array
     {
-        return array_map(function ($record) {
-            return [
-                'host' => $record->host,
-                'class' => $record->class,
-                'ttl' => $record->ttl,
-                'type' => $record->type,
-                'pri' => $record->pri,
-                'target' => $record->target,
-                'ips' => array_map(function ($ip) {
-                    return [
-                        'blacklists' => array_map(function ($blacklist) {
-                            return [
-                                'listed' => $blacklist->isListed(),
-                                'host' => $blacklist->host,
-                                'service' => $blacklist->service,
-                                'ipReverse' => $blacklist->ipReverse,
-                                'hostname' => $blacklist->hostname(),
-                            ];
-                        }, $ip->blacklists->toArray()),
-                        'invalid' => $ip->isInvalid(),
-                        'listed' => $ip->isListed(),
-                        'ip' => $ip->get(),
-                    ];
-                }, $record->ips()->toArray()),
-            ];
-        }, $this->items);
+        return array_map(static fn($record): array => [
+            'host' => $record->host,
+            'class' => $record->class,
+            'ttl' => $record->ttl,
+            'type' => $record->type,
+            'pri' => $record->pri,
+            'target' => $record->target,
+            'ips' => array_map(static fn($ip): array => [
+                'blacklists' => array_map(static fn($blacklist): array => [
+                    'listed' => $blacklist->isListed(),
+                    'host' => $blacklist->host,
+                    'service' => $blacklist->service,
+                    'ipReverse' => $blacklist->ipReverse,
+                    'hostname' => $blacklist->hostname(),
+                ], $ip->blacklists->toArray()),
+                'invalid' => $ip->isInvalid(),
+                'listed' => $ip->isListed(),
+                'ip' => $ip->get(),
+            ], $record->ips()->toArray()),
+        ], $this->items);
     }
 }

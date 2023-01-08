@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\SystemChecks;
+namespace Tests;
 
 use Mockery;
 use PHPUnit\Framework\TestCase;
@@ -13,6 +13,9 @@ use SlickSky\SpamBlacklistQuery\MxRecord;
 use SlickSky\SpamBlacklistQuery\Result;
 
 use function array_map;
+use function current;
+use function key;
+use function reset;
 
 final class ResultTest extends TestCase
 {

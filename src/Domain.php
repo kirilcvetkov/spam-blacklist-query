@@ -14,9 +14,10 @@ use const FILTER_VALIDATE_DOMAIN;
 
 class Domain
 {
-    public function __construct(protected string $name, Config|null $config = null)
+    /** @throws Exception */
+    public function __construct(protected string $name, public Config|null $config = null)
     {
-        $this->config = $config ?? new Config();
+        $this->config ??= new Config();
 
         if (filter_var($this->name, FILTER_VALIDATE_DOMAIN, FILTER_FLAG_HOSTNAME) !== $this->name) {
             throw new Exception('Invalid domain.');
@@ -45,8 +46,6 @@ class Domain
      * Retrieves IPs associated with the MX server of a domain
      *
      * @return string[] List of MX servers.
-     *
-     * @throws Exception
      */
     protected function getMxRecords(): array
     {

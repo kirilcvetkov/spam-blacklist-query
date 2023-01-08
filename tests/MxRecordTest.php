@@ -16,13 +16,13 @@ final class MxRecordTest extends TestCase
 {
     public function testInitialize(): void
     {
-        $testDoamin = 'google.com';
-        $records    = dns_get_record($testDoamin, DNS_MX);
+        $testDomain = 'google.com';
+        $records    = dns_get_record($testDomain, DNS_MX);
         $record     = reset($records);
 
         $mx = new MxRecord($record);
 
-        $this->assertEquals($testDoamin, $mx->host);
+        $this->assertEquals($testDomain, $mx->host);
         $this->assertEquals('IN', $mx->class);
         $this->assertIsInt($mx->ttl);
         $this->assertEquals('MX', $mx->type);

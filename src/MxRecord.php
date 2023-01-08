@@ -36,7 +36,7 @@ class MxRecord
 
     public function ips(): Collection
     {
-        if (isset($this->ips) && $this->ips instanceof Collection) {
+        if (isset($this->ips)) {
             return $this->ips;
         }
 

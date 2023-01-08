@@ -13,7 +13,6 @@ use Traversable;
 
 use function array_map;
 use function count;
-use function is_null;
 
 class Collection implements Countable, IteratorAggregate, ArrayAccess, JsonSerializable
 {
@@ -60,7 +59,7 @@ class Collection implements Countable, IteratorAggregate, ArrayAccess, JsonSeria
         return count($this->items);
     }
 
-    public function toArray()
+    public function toArray(): array
     {
         return $this->items;
     }

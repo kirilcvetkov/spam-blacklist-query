@@ -24,7 +24,7 @@ class Blacklist
 
     public function query(): array|bool
     {
-        return (bool) checkdnsrr($this->hostname(), 'A');
+        return checkdnsrr($this->hostname(), 'A');
     }
 
     public function isListed(): bool

@@ -31,7 +31,7 @@ class MxIp
     public function query(Blacklist $blacklist): bool|null
     {
         if ($this->invalid) {
-            return null; // TODO Exception?
+            return null;
         }
 
         $listed = $blacklist->isListed();

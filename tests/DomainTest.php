@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\SystemChecks;
+namespace Tests;
 
 use PHPUnit\Framework\TestCase;
 use SlickSky\SpamBlacklistQuery\Blacklist;
@@ -54,15 +54,15 @@ final class DomainTest extends TestCase
         $this->expectException(Exception::class);
         $this->expectExceptionMessage('Invalid domain.');
 
-        $invalidDoamin = 'google com';
-        new Domain($invalidDoamin);
+        $invalidDomain = 'google com';
+        new Domain($invalidDomain);
     }
 
     public function testNoMxRecords(): void
     {
-        $nonExistingDoamin = 'google.commmm';
+        $nonExistingDomain = 'google.commmm';
 
-        $result = (new Domain($nonExistingDoamin))
+        $result = (new Domain($nonExistingDomain))
             ->query();
 
         $this->assertInstanceOf(Result::class, $result);

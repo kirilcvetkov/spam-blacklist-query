@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\SystemChecks;
+namespace Tests;
 
 use Mockery;
 use PHPUnit\Framework\TestCase;

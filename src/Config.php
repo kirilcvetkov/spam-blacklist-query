@@ -17,8 +17,8 @@ class Config
         'list.dsbl.org' => 'DSBL',
     ];
 
-    public function __construct(array|null $blacklists = null)
+    public function __construct(public array|null $blacklists = null)
     {
-        $this->blacklists = $blacklists ?? self::BLACKLISTS;
+        $this->blacklists ??= self::BLACKLISTS;
     }
 }
