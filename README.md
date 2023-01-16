@@ -3,9 +3,25 @@
 This small package helps you find out if a domain or IP is blacklisted on the most popular spam listing services.
 
 Here's how it works:
-1. Retrieve MX records for an inputted domain
-2. Get the list of IPs for each MX record
-3. Test each IP against the Spam Blacklist services
+1. Test the domain against these Spam Blacklist services (DNSBL URI):
+   - APEWS Level 1 (http://www.apews.org/)
+   - Scientific Spam URI (https://www.scientificspam.net/)
+   - SEM URI (https://spameatingmonkey.com/)
+   - SEM URIed (https://spameatingmonkey.com/)
+   - SORBS URI (http://www.sorbs.net/)
+   - SpamHaus Zen (https://www.spamhaus.org/zen/)
+   - SURBL multi (https://surbl.org/)
+   - URIBL multi (https://uribl.com/)
+2. Retrieve mail servers for the given domain (MX records).
+3. Get the list of IPs for each mail servers (A records).
+4. Test each IP against these Spam Blacklist services (DNSBL IP):
+   - UCEPROTECT (https://www.uceprotect.net/en/)
+   - DroneBL (https://dronebl.org/)
+   - SORBS (http://www.sorbs.net/)
+   - SpamHaus Zen (https://www.spamhaus.org/zen/)
+   - SpamCop.net (https://www.spamcop.net/)
+   - DSBL (https://www.dsbl.org/)
+
 
 ### Installation
 
@@ -28,39 +44,47 @@ use SlickSky\SpamBlacklistQuery\MxIp;
 // Test a Domain
 $sampleDomain = 'google.com';
 $domainResults = (new Domain($sampleDomain))
-   ->query(); // Collection
+   ->query(); // returns Collection
 
 // Get the listed records only
-$listedIps = $domainResults->listed(); // Collection
+$listedIps = $domainResults->listed(); // returns Collection
 
-// Ask if any IP records of the domain are listed
-$isListed = $domainResults->isListed(); // bool
+// Ask if the domain or any IP records are listed
+$isListed = $domainResults->isListed(); // returns bool
 
-// Override blacklisting services
-// array of ['service address' => 'name']
-$blacklists = new Config([
-   'dnsbl-1.uceprotect.net' => 'UCEPROTECT',
-]);
+
+/**
+ * Customize blacklist services (DNSBL)
+ * You can either specify blacklistsIp or blacklistsUri parameters.
+ * If you omit any, the internal list will be used.
+ * If you want to turn off IP or URI queries, pass an empty array to either one.
+ *
+ * Blacklist array template: ['service address' => 'name']
+ */
+$blacklists = new Config(
+   blacklistsIp: ['dnsbl-1.uceprotect.net' => 'UCEPROTECT'],
+   blacklistsUri: ['zen.spamhaus.org' => 'SpamHaus Zen'],
+);
 
 $domainResults = (new Domain($sampleDomain, $blacklists))
    ->query(); // returns Collection
 
 
-// Test IP
+// Test a single IP
 $ip = new MxIp('8.8.8.8');
 
 // Is this IP valid?
-$isInvalid = $ip->isInvalid(); // bool
+$isInvalid = $ip->isInvalid(); // returns bool
 
 // Query the IP
-foreach (Config::BLACKLISTS as $serviceHost => $serviceName) {
+foreach (Config::BLACKLISTS_IP as $serviceHost => $serviceName) {
    $isListed = $ip->query(
       Blacklist::load($serviceHost, $serviceName, $ip),
-   ); // bool
+   ); // returns bool
 }
 
 // Get the listed state
-$isListed = $ip->isListed(); // bool
+$isListed = $ip->isListed(); // returns bool
 
 // Get the blacklists objects and their results
 $blacklistsResults = $ip->blacklists; // Collection
@@ -81,6 +105,19 @@ SlickSky\SpamBlacklistQuery\Result::__set_state([
        'type' => 'MX',
        'pri' => 10,
        'target' => 'smtp.google.com',
+       'listed' => false,
+       'blacklists' =>
+      SlickSky\SpamBlacklistQuery\Collection::__set_state([
+         'items' => [
+          SlickSky\SpamBlacklistQuery\Blacklist::__set_state([
+             'listed' => false,
+             'host' => 'dnsbl-1.uceprotect.net',
+             'name' => 'UCEPROTECT',
+             'ipReverse' => 'google.com',
+             'responseTime' => 0.012,
+          ]),
+        ],
+      ]),
        'ips' =>
       SlickSky\SpamBlacklistQuery\Collection::__set_state([
          'items' => [
@@ -93,6 +130,7 @@ SlickSky\SpamBlacklistQuery\Result::__set_state([
                    'host' => 'dnsbl-1.uceprotect.net',
                    'name' => 'UCEPROTECT',
                    'ipReverse' => '27.2.251.142',
+                   'responseTime' => 0.012,
                 ]),
               ],
             ]),

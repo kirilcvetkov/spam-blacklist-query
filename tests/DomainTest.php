@@ -23,10 +23,12 @@ final class DomainTest extends TestCase
     {
         $testDomain = 'google.com';
 
-        $result = (new Domain(
-            $testDomain,
-            new Config([key(Config::BLACKLISTS) => current(Config::BLACKLISTS)]),
-        ))->query();
+        $config = new Config(
+            [key(Config::BLACKLISTS_IP) => current(Config::BLACKLISTS_IP)],
+            [key(Config::BLACKLISTS_URI) => current(Config::BLACKLISTS_URI)]
+        );
+
+        $result = (new Domain($testDomain, $config))->query();
 
         $this->assertInstanceOf(Result::class, $result);
         $this->assertContainsOnlyInstancesOf(MxRecord::class, $result);
@@ -36,6 +38,7 @@ final class DomainTest extends TestCase
             $this->assertEquals('MX', $mxRecord->type);
             $this->assertInstanceOf(Collection::class, $mxRecord->ips());
             $this->assertContainsOnlyInstancesOf(MxIp::class, $mxRecord->ips());
+            $this->assertFalse($mxRecord->isListed());
 
             foreach ($mxRecord->ips() as $mxIp) {
                 $this->assertFalse($mxIp->isListed());
@@ -62,10 +65,10 @@ final class DomainTest extends TestCase
     {
         $nonExistingDomain = 'google.commmm';
 
-        $result = (new Domain($nonExistingDomain))
-            ->query();
+        $this->expectException(Exception::class);
+        $this->expectExceptionMessage('No MX records found for domain.');
 
-        $this->assertInstanceOf(Result::class, $result);
-        $this->assertEmpty($result);
+        (new Domain($nonExistingDomain))
+            ->query();
     }
 }

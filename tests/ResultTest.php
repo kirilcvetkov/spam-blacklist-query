@@ -19,12 +19,17 @@ use function reset;
 
 final class ResultTest extends TestCase
 {
-    protected function getResultObject(bool $isListed): Result
+    protected function getResultObject(bool $isIpListed = false, bool $isUriListed = false): Result
     {
-        $blacklist = Mockery::mock(Blacklist::class);
-        $blacklist->shouldReceive('isListed')
+        $blacklistIp = Mockery::mock(Blacklist::class);
+        $blacklistIp->shouldReceive('isListed')
             ->once()
-            ->andReturn($isListed);
+            ->andReturn($isIpListed);
+
+        $blacklistUri = Mockery::mock(Blacklist::class);
+        $blacklistUri->shouldReceive('isListed')
+            ->once()
+            ->andReturn($isUriListed);
 
         $mxRecord = new MxRecord([
             'host' => 'google.com',
@@ -36,9 +41,13 @@ final class ResultTest extends TestCase
         ]);
 
         return new Result(array_map(
-            static function ($record) use ($blacklist) {
+            static function ($record) use ($blacklistIp, $blacklistUri) {
+                // DNSBL URI
+                $record->query($blacklistUri);
+
+                // DNSBL IP
                 foreach ($record->ips() as $ip) {
-                    $ip->query($blacklist);
+                    $ip->query($blacklistIp);
                 }
 
                 return $record;
@@ -47,9 +56,9 @@ final class ResultTest extends TestCase
         ));
     }
 
-    public function testListed(): void
+    public function testListedIp(): void
     {
-        $result = $this->getResultObject(true);
+        $result = $this->getResultObject(isIpListed: true);
 
         $this->assertInstanceOf(Result::class, $result);
         $this->assertNotEmpty($result->listed());
@@ -57,9 +66,29 @@ final class ResultTest extends TestCase
         $this->assertTrue($result->isListed());
     }
 
-    public function testNotListed(): void
+    public function testNotListedIp(): void
     {
-        $result = $this->getResultObject(false);
+        $result = $this->getResultObject(isIpListed: false);
+
+        $this->assertInstanceOf(Result::class, $result);
+        $this->assertEmpty($result->listed());
+        $this->assertContainsOnlyInstancesOf(MxRecord::class, $result);
+        $this->assertFalse($result->isListed());
+    }
+
+    public function testListedUri(): void
+    {
+        $result = $this->getResultObject(isUriListed: true);
+
+        $this->assertInstanceOf(Result::class, $result);
+        $this->assertNotEmpty($result->listed());
+        $this->assertContainsOnlyInstancesOf(MxRecord::class, $result);
+        $this->assertTrue($result->isListed());
+    }
+
+    public function testNotListedUri(): void
+    {
+        $result = $this->getResultObject(isUriListed: false);
 
         $this->assertInstanceOf(Result::class, $result);
         $this->assertEmpty($result->listed());
@@ -71,10 +100,12 @@ final class ResultTest extends TestCase
     {
         $testDomain = 'google.com';
 
-        $result = (new Domain(
-            $testDomain,
-            new Config([key(Config::BLACKLISTS) => current(Config::BLACKLISTS)]),
-        ))->query();
+        $config = new Config(
+            [key(Config::BLACKLISTS_IP) => current(Config::BLACKLISTS_IP)],
+            [key(Config::BLACKLISTS_URI) => current(Config::BLACKLISTS_URI)]
+        );
+
+        $result = (new Domain($testDomain, $config))->query();
 
         $this->assertInstanceOf(Result::class, $result);
         $this->assertContainsOnlyInstancesOf(MxRecord::class, $result);
@@ -85,6 +116,8 @@ final class ResultTest extends TestCase
         $this->assertArrayHasKey('host', $array);
         $this->assertArrayHasKey('target', $array);
         $this->assertArrayHasKey('ips', $array);
+        $this->assertArrayHasKey('listed', $array);
+        $this->assertArrayHasKey('blacklists', $array);
         $this->assertIsArray($array['ips']);
 
         $ip = reset($array['ips']);
@@ -101,5 +134,6 @@ final class ResultTest extends TestCase
         $this->assertArrayHasKey('service', $blacklist);
         $this->assertArrayHasKey('listed', $blacklist);
         $this->assertArrayHasKey('ipReverse', $blacklist);
+        $this->assertArrayHasKey('responseTime', $blacklist);
     }
 }

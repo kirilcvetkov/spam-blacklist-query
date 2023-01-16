@@ -24,21 +24,36 @@ class Domain
         }
     }
 
+    /** @throws Exception */
     public function query(): Result
     {
+        $records = $this->getMxRecords();
+
+        if (empty($records)) {
+            throw new Exception('No MX records found for domain.');
+        }
+
         return new Result(array_map(
             function ($record) {
+                // DNSBL URI
+                foreach ($this->config->blacklistsUri as $host => $service) {
+                    $record->query(
+                        new Blacklist($host, $service, $this->name)
+                    );
+                }
+
+                // DNSBL IP
                 foreach ($record->ips() as $ip) {
-                    foreach ($this->config->blacklists as $host => $name) {
+                    foreach ($this->config->blacklistsIp as $host => $service) {
                         $ip->query(
-                            Blacklist::load($host, $name, $ip),
+                            new Blacklist($host, $service, $ip->reverse())
                         );
                     }
                 }
 
                 return $record;
             },
-            $this->getMxRecords(),
+            $records,
         ));
     }
 

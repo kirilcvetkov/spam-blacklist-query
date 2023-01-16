@@ -17,6 +17,8 @@ class MxRecord
     public string|null $type;
     public int|null $pri;
     public string|null $target;
+    public Collection $blacklists;
+    protected bool $listed;
     protected Collection $ips;
 
     /**
@@ -32,6 +34,8 @@ class MxRecord
         $this->type   = $record['type'] ?? null;
         $this->pri    = $record['pri'] ?? null;
         $this->target = $record['target'] ?? null;
+
+        $this->blacklists = new Collection([]);
     }
 
     public function ips(): Collection
@@ -42,7 +46,7 @@ class MxRecord
 
         return $this->ips = new Collection(array_map(
             static fn ($record) => new MxIp($record['ip'] ?? null),
-            $this->query(),
+            dns_get_record($this->target, DNS_A) ?? [],
         ));
     }
 
@@ -51,12 +55,19 @@ class MxRecord
      *
      * @return string[][] Response from dns_get_record()
      */
-    public function query(): array
+    public function query(Blacklist $blacklist): bool|null
     {
-        if (empty($this->target)) {
-            return [];
-        }
+        $listed = $blacklist->isListed();
 
-        return dns_get_record($this->target, DNS_A) ?? [];
+        $this->listed ??= false ?: $listed;
+
+        $this->blacklists[] = $blacklist;
+
+        return $listed;
+    }
+
+    public function isListed(): bool|null
+    {
+        return $this->listed ?? null;
     }
 }

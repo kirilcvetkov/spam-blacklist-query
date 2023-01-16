@@ -12,6 +12,10 @@ class Result extends Collection
     public function isListed(): bool
     {
         foreach ($this->items as $mxRecord) {
+            if ($mxRecord->isListed()) {
+                return true;
+            }
+
             foreach ($mxRecord->ips() as $mxIp) {
                 if (empty($mxIp->isListed())) {
                     continue;
@@ -29,6 +33,10 @@ class Result extends Collection
         return new Result(array_filter(
             $this->items,
             static function (MxRecord $record) {
+                if ($record->isListed()) {
+                    return $record;
+                }
+
                 foreach ($record->ips() as $mxIp) {
                     if (! $mxIp->isListed()) {
                         continue;
@@ -54,6 +62,15 @@ class Result extends Collection
             'type' => $record->type,
             'pri' => $record->pri,
             'target' => $record->target,
+            'listed' => $record->isListed(),
+            'blacklists' => array_map(static fn($blacklist): array => [
+                'listed' => $blacklist->isListed(),
+                'host' => $blacklist->host,
+                'service' => $blacklist->service,
+                'ipReverse' => $blacklist->ipReverse,
+                'hostname' => $blacklist->hostname(),
+                'responseTime' => $blacklist->responseTime,
+            ], $record->blacklists->toArray()),
             'ips' => array_map(static fn($ip): array => [
                 'blacklists' => array_map(static fn($blacklist): array => [
                     'listed' => $blacklist->isListed(),
@@ -61,6 +78,7 @@ class Result extends Collection
                     'service' => $blacklist->service,
                     'ipReverse' => $blacklist->ipReverse,
                     'hostname' => $blacklist->hostname(),
+                    'responseTime' => $blacklist->responseTime,
                 ], $ip->blacklists->toArray()),
                 'invalid' => $ip->isInvalid(),
                 'listed' => $ip->isListed(),
