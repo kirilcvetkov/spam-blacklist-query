@@ -55,12 +55,20 @@ $isListed = $domainResults->isListed(); // returns bool
 
 /**
  * Customize blacklist services (DNSBL)
- * You can either specify blacklistsIp or blacklistsUri parameters.
+ *
+ * There are 4 sets of Blacklists in the Config class:
+ *   1. Config::BLACKLISTS_IP - used to test IPs
+ *   2. Config::BLACKLISTS_URI - used to test domains/subdomains
+ *   3. Config::BLACKLISTS_EXTENDED - mixed list of most popular blacklists
+ *   4. Config::BLACKLISTS_FULL - mixed list of all blacklists I've found so far
+ *
+ * In the Config class, you can customize blacklistsIp and/or blacklistsUri.
  * If you omit any, the internal list will be used.
- * If you want to turn off IP or URI queries, pass an empty array to either one.
+ * If you want to turn off IP or URI queries, pass an empty array to blacklistsIp or blacklistsUri.
  *
  * Blacklist array template: ['service address' => 'name']
  */
+
 $blacklists = new Config(
    blacklistsIp: ['dnsbl-1.uceprotect.net' => 'UCEPROTECT'],
    blacklistsUri: ['zen.spamhaus.org' => 'SpamHaus Zen'],
