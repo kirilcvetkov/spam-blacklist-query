@@ -55,7 +55,7 @@ class Result extends Collection
      */
     public function toArray(): array
     {
-        return array_map(static fn($record): array => [
+        return array_map(fn($record): array => [
             'host' => $record->host,
             'class' => $record->class,
             'ttl' => $record->ttl,
@@ -63,7 +63,7 @@ class Result extends Collection
             'pri' => $record->pri,
             'target' => $record->target,
             'listed' => $record->isListed(),
-            'blacklists' => array_map(static fn($blacklist): array => [
+            'blacklists' => array_map(fn($blacklist): array => [
                 'listed' => $blacklist->isListed(),
                 'host' => $blacklist->host,
                 'service' => $blacklist->service,
@@ -71,8 +71,8 @@ class Result extends Collection
                 'hostname' => $blacklist->hostname(),
                 'responseTime' => $blacklist->responseTime,
             ], $record->blacklists->toArray()),
-            'ips' => array_map(static fn($ip): array => [
-                'blacklists' => array_map(static fn($blacklist): array => [
+            'ips' => array_map(fn($ip): array => [
+                'blacklists' => array_map(fn($blacklist): array => [
                     'listed' => $blacklist->isListed(),
                     'host' => $blacklist->host,
                     'service' => $blacklist->service,

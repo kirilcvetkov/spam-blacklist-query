@@ -19,7 +19,6 @@ class MxRecord
     public string|null $target;
     public Collection $blacklists;
     protected bool $listed;
-    protected Collection $ips;
 
     /**
      * __construct
@@ -38,13 +37,33 @@ class MxRecord
         $this->blacklists = new Collection([]);
     }
 
+    /**
+     * Lookup MX records of a domain
+     *
+     * @return string[] List of MX servers.
+     */
+    public static function lookup(string $domain): array
+    {
+        return array_map(
+            static fn ($mx) => new static($mx),
+            dns_get_record($domain, DNS_MX) ?: [],
+        );
+    }
+
+    /**
+     * Lazy loading MX record IP(s)
+     *
+     * @return string[] List of MX servers.
+     */
     public function ips(): Collection
     {
-        if (isset($this->ips)) {
-            return $this->ips;
+        static $ips;
+
+        if (isset($ips)) {
+            return $ips;
         }
 
-        return $this->ips = new Collection(array_map(
+        return $ips = new Collection(array_map(
             static fn ($record) => new MxIp($record['ip'] ?? null),
             dns_get_record($this->target, DNS_A) ?? [],
         ));

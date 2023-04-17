@@ -27,7 +27,7 @@ class Domain
     /** @throws Exception */
     public function query(): Result
     {
-        $records = $this->getMxRecords();
+        $records = MxRecord::lookup($this->name);
 
         if (empty($records)) {
             throw new Exception('No MX records found for domain.');
@@ -55,18 +55,5 @@ class Domain
             },
             $records,
         ));
-    }
-
-    /**
-     * Retrieves IPs associated with the MX server of a domain
-     *
-     * @return string[] List of MX servers.
-     */
-    protected function getMxRecords(): array
-    {
-        return array_map(
-            static fn ($mx) => new MxRecord($mx),
-            dns_get_record($this->name, DNS_MX) ?: [],
-        );
     }
 }
