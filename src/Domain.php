@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace SlickSky\SpamBlacklistQuery;
 
+use InvalidArgumentException;
+use Exception;
+
 use function array_map;
 use function dns_get_record;
 use function filter_var;
@@ -14,13 +17,13 @@ use const FILTER_VALIDATE_DOMAIN;
 
 class Domain
 {
-    /** @throws Exception */
+    /** @throws InvalidArgumentException */
     public function __construct(protected string $name, public Config|null $config = null)
     {
         $this->config ??= new Config();
 
         if (filter_var($this->name, FILTER_VALIDATE_DOMAIN, FILTER_FLAG_HOSTNAME) !== $this->name) {
-            throw new Exception('Invalid domain.');
+            throw new InvalidArgumentException('Invalid domain.');
         }
     }
 

@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace Tests;
 
+use Exception;
+use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
 use SlickSky\SpamBlacklistQuery\Blacklist;
 use SlickSky\SpamBlacklistQuery\Collection;
 use SlickSky\SpamBlacklistQuery\Config;
 use SlickSky\SpamBlacklistQuery\Domain;
-use SlickSky\SpamBlacklistQuery\Exception;
 use SlickSky\SpamBlacklistQuery\MxIp;
 use SlickSky\SpamBlacklistQuery\MxRecord;
 use SlickSky\SpamBlacklistQuery\Result;
@@ -54,7 +55,7 @@ final class DomainTest extends TestCase
 
     public function testInvalidDomain(): void
     {
-        $this->expectException(Exception::class);
+        $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Invalid domain.');
 
         $invalidDomain = 'google com';
