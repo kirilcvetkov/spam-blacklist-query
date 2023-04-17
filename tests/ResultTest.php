@@ -19,64 +19,71 @@ use function reset;
 
 final class ResultTest extends TestCase
 {
-    protected function providerResultObject()
+    protected function getResultObject(bool $isIpListed = false, bool $isUriListed = false): Result
     {
-        $tests = [
-            [true, false, 'assertNotEmpty', true],
-            [false, true, 'assertEmpty', false],
-            [false, false, 'assertNotEmpty', true]
-        ];
+        $blacklistIp = Mockery::mock(Blacklist::class);
+        $blacklistIp->shouldReceive('isListed')
+            ->once()
+            ->andReturn($isIpListed);
 
-        foreach ($tests as [$isIpListed, $isUriListed, $assertListed, $expectedIsListed]) {
-            $blacklistIp = Mockery::mock(Blacklist::class);
-            $blacklistIp->shouldReceive('isListed')
-                ->once()
-                ->andReturn($isIpListed);
+        $blacklistUri = Mockery::mock(Blacklist::class);
+        $blacklistUri->shouldReceive('isListed')
+            ->once()
+            ->andReturn($isUriListed);
 
-            $blacklistUri = Mockery::mock(Blacklist::class);
-            $blacklistUri->shouldReceive('isListed')
-                ->once()
-                ->andReturn($isUriListed);
+        $mxRecord = new MxRecord([
+            'host' => 'google.com',
+            'class' => 'IN',
+            'ttl' => 377,
+            'type' => 'MX',
+            'pri' => 10,
+            'target' => 'smtp.google.com',
+        ]);
 
-            $mxRecord = new MxRecord([
-                'host' => 'google.com',
-                'class' => 'IN',
-                'ttl' => 377,
-                'type' => 'MX',
-                'pri' => 10,
-                'target' => 'smtp.google.com',
-            ]);
+        return new Result(array_map(
+            static function ($record) use ($blacklistIp, $blacklistUri) {
+                // DNSBL URI
+                $record->query($blacklistUri);
 
-            yield [
-                new Result(array_map(
-                    static function ($record) use ($blacklistIp, $blacklistUri) {
-                        // DNSBL URI
-                        $record->query($blacklistUri);
+                // DNSBL IP
+                foreach ($record->ips() as $ip) {
+                    $ip->query($blacklistIp);
+                }
 
-                        // DNSBL IP
-                        foreach ($record->ips() as $ip) {
-                            $ip->query($blacklistIp);
-                        }
-
-                        return $record;
-                    },
-                    [$mxRecord],
-                )),
-                $assertListed,
-                $expectedIsListed,
-            ];
-        }
+                return $record;
+            },
+            [$mxRecord],
+        ));
     }
 
-    /**
-     * @dataProvider providerResultObject
-     */
-    public function testListedIp($result, $assertListed, $expectedIsListed): void
+    public function testListedIp(): void
     {
+        $result = $this->getResultObject(isIpListed: true);
+
         $this->assertInstanceOf(Result::class, $result);
-        $this->$assertListed($result->listed());
+        $this->assertNotEmpty($result->listedOnly());
         $this->assertContainsOnlyInstancesOf(MxRecord::class, $result);
-        $this->assertEquals($expectedIsListed, $result->isListed());
+        $this->assertTrue($result->isListed());
+    }
+
+    public function testListedUri(): void
+    {
+        $result = $this->getResultObject(isUriListed: true);
+
+        $this->assertInstanceOf(Result::class, $result);
+        $this->assertNotEmpty($result->listedOnly());
+        $this->assertContainsOnlyInstancesOf(MxRecord::class, $result);
+        $this->assertTrue($result->isListed());
+    }
+
+    public function testNotListed(): void
+    {
+        $result = $this->getResultObject();
+
+        $this->assertInstanceOf(Result::class, $result);
+        $this->assertEmpty($result->listedOnly());
+        $this->assertContainsOnlyInstancesOf(MxRecord::class, $result);
+        $this->assertFalse($result->isListed());
     }
 
     public function testToArray(): void
@@ -94,13 +101,13 @@ final class ResultTest extends TestCase
         $this->assertContainsOnlyInstancesOf(MxRecord::class, $result);
 
         $array = $result->toArray();
-dd($array);
+
         $array = reset($array);
 
         $this->assertArrayHasKey('host', $array);
         $this->assertArrayHasKey('target', $array);
         $this->assertArrayHasKey('ips', $array);
-        $this->assertArrayHasKey('listed', $array);
+        $this->assertArrayHasKey('isListed', $array);
         $this->assertArrayHasKey('blacklists', $array);
         $this->assertIsArray($array['ips']);
 
@@ -108,7 +115,7 @@ dd($array);
 
         $this->assertArrayHasKey('blacklists', $ip);
         $this->assertArrayHasKey('invalid', $ip);
-        $this->assertArrayHasKey('listed', $ip);
+        $this->assertArrayHasKey('isListed', $ip);
         $this->assertArrayHasKey('ip', $ip);
         $this->assertIsArray($ip['blacklists']);
 
@@ -116,7 +123,7 @@ dd($array);
 
         $this->assertArrayHasKey('host', $blacklist);
         $this->assertArrayHasKey('service', $blacklist);
-        $this->assertArrayHasKey('listed', $blacklist);
+        $this->assertArrayHasKey('isListed', $blacklist);
         $this->assertArrayHasKey('ipReverse', $blacklist);
         $this->assertArrayHasKey('responseTime', $blacklist);
     }

@@ -28,7 +28,7 @@ class Result extends Collection
         return false;
     }
 
-    public function listed(): Result
+    public function listedOnly(): Result
     {
         return new Result(array_filter(
             $this->items,
@@ -57,32 +57,32 @@ class Result extends Collection
     {
         return array_map(fn($record): array => [
             'host' => $record->host,
+            'target' => $record->target,
             'class' => $record->class,
             'ttl' => $record->ttl,
             'type' => $record->type,
             'pri' => $record->pri,
-            'target' => $record->target,
-            'listed' => $record->isListed(),
+            'isListed' => $record->isListed(),
             'blacklists' => array_map(fn($blacklist): array => [
-                'listed' => $blacklist->isListed(),
                 'host' => $blacklist->host,
+                'hostname' => $blacklist->hostname(),
                 'service' => $blacklist->service,
                 'ipReverse' => $blacklist->ipReverse,
-                'hostname' => $blacklist->hostname(),
+                'isListed' => $blacklist->isListed(),
                 'responseTime' => $blacklist->responseTime,
             ], $record->blacklists->toArray()),
             'ips' => array_map(fn($ip): array => [
+                'ip' => $ip->get(),
+                'invalid' => $ip->isInvalid(),
                 'blacklists' => array_map(fn($blacklist): array => [
-                    'listed' => $blacklist->isListed(),
                     'host' => $blacklist->host,
+                    'hostname' => $blacklist->hostname(),
                     'service' => $blacklist->service,
                     'ipReverse' => $blacklist->ipReverse,
-                    'hostname' => $blacklist->hostname(),
+                    'isListed' => $blacklist->isListed(),
                     'responseTime' => $blacklist->responseTime,
                 ], $ip->blacklists->toArray()),
-                'invalid' => $ip->isInvalid(),
-                'listed' => $ip->isListed(),
-                'ip' => $ip->get(),
+                'isListed' => $ip->isListed(),
             ], $record->ips()->toArray()),
         ], $this->items);
     }

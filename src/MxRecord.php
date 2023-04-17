@@ -19,6 +19,7 @@ class MxRecord
     public string|null $target;
     public Collection $blacklists;
     protected bool $listed;
+    protected Collection $ips;
 
     /**
      * __construct
@@ -57,13 +58,11 @@ class MxRecord
      */
     public function ips(): Collection
     {
-        static $ips;
-
-        if (isset($ips)) {
-            return $ips;
+        if (isset($this->ips)) {
+            return $this->ips;
         }
 
-        return $ips = new Collection(array_map(
+        return $this->ips = new Collection(array_map(
             static fn ($record) => new MxIp($record['ip'] ?? null),
             dns_get_record($this->target, DNS_A) ?? [],
         ));
