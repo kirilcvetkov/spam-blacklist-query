@@ -100,7 +100,7 @@ $isInvalid = $ip->isInvalid(); // returns bool
 // Query the IP
 foreach (Config::BLACKLISTS_IP as $serviceHost => $serviceName) {
    $isListed = $ip->query(
-      Blacklist::load($serviceHost, $serviceName, $ip),
+      new Blacklist($serviceHost, $serviceName, $ip->reverse()),
    ); // returns bool
 }
 
